@@ -2,6 +2,11 @@
 using System.Net;
 namespace gtt.MainC
 {
+    /// <summary>
+    /// Klasa trzymająca opcje
+    /// 
+    /// autor: Tomasz Dietrich
+    /// </summary>
     public static class OptionsHandler
     {
         public static float blocksBounciness = 0.01f;

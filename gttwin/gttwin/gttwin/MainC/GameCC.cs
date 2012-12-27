@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Threading;
+using FarseerPhysics.Dynamics.Joints;
 
 
 namespace gttwin.MainC
@@ -84,7 +85,7 @@ namespace gttwin.MainC
         protected float counter;
 
         private SpriteBatch spriteBatch;
-
+        private SpriteBatch hudBatch;
         /// <summary>
         /// Struktura trzymające settingsy gry
         /// </summary>
@@ -94,6 +95,11 @@ namespace gttwin.MainC
         /// Zmienna mówiąca czy blok wylosowany 'leci', czy został postawiony.
         /// </summary>
         protected bool blockOnHisWay;
+
+        /// <summary>
+        /// Informacja jaki ksztalt bedzie nastepny
+        /// </summary>
+        public int nextShape { get; set; }
 
         /// <summary>
         /// Blok który w tym momencie spada.
@@ -121,8 +127,12 @@ namespace gttwin.MainC
         /// </summary>
         private InputManager GameInputManager;
 
-
+        /// <summary>
+        /// Wątek do zarządzania inputem
+        /// </summary>
         private Thread InputThread;
+
+
         #endregion
 
         # region Level Specific vars
@@ -151,9 +161,17 @@ namespace gttwin.MainC
             GameInputManager = new InputManager();
             GameInputManager.AddAction("BackToMenu");
             GameInputManager.AddAction("Pause");
+            GameInputManager.AddAction("CCW");
+            GameInputManager.AddAction("CW");
+            GameInputManager.AddAction("Left");
+            GameInputManager.AddAction("Right");
+
             GameInputManager["BackToMenu"].Add(Keys.Escape);
             GameInputManager["Pause"].Add(Keys.P);
-
+            GameInputManager["CCW"].Add(Keys.Up);
+            GameInputManager["CW"].Add(Keys.Down);
+            GameInputManager["Left"].Add(Keys.Left);
+            GameInputManager["Right"].Add(Keys.Right);
             
             floorHeight = 15;
             platformHeight = 40;
@@ -172,7 +190,8 @@ namespace gttwin.MainC
 
 
             // Get the content manager from the application
-            spriteBatch = new SpriteBatch(this.GraphicsDevice);
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            hudBatch = new SpriteBatch(GraphicsDevice);
             LevelLines = new List<LevelLine>();
 
 
@@ -250,20 +269,13 @@ namespace gttwin.MainC
             tex2 = Game.Content.Load<Texture2D>("asdawdas");
             tex3 = Game.Content.Load<Texture2D>("floor");
 
-           
+            // ladowanie fontu z assetow
+            hudFont = Game.Content.Load<SpriteFont>("font");
             //OurBlock = new Block(BLOCKTYPES.Z_SHAPE, ref world, tex);
            _floorS = new Sprite(tex3);
            _platformS = new Sprite(tex2);
         }
 
-        /// <summary>
-        /// nakładka na protected powyższy zeby mozna bylo wywolac z zewnatrz...
-        /// </summary>
-        public void LoadOurContent()
-        {
-            this.LoadContent();
-
-        }
         /// <summary>
         /// redraw
         /// </summary>
@@ -312,7 +324,7 @@ namespace gttwin.MainC
             debugView.RenderDebugData(ref view);
 
             // Draws user hud
-            //DrawHud();
+            DrawHud();
 
             // Tutaj rysujemy interfejs silverlightowy, ale zamieniony/przerenderowany na 
             // Xna texture.
@@ -332,9 +344,18 @@ namespace gttwin.MainC
         /// </summary>
         private void DrawHud()
         {
-            
+            BLOCKTYPES komunikat = (BLOCKTYPES)nextShape;
+
+            hudBatch.Begin();
+                // Rysowanie tekstu
+                hudBatch.DrawString(hudFont, "Next Shape: " + komunikat.ToString(), new Vector2(10, 10), Color.Black);
+                // Zamykanie rysowania duszków w danej klatce
+            hudBatch.End();
         }
 
+        /// <summary>
+        /// Rysuje linie pokazujące wysokosci wiezy do osiągnięcia
+        /// </summary>
         private void DrawLevelLines()
         {
             basicEffect.CurrentTechnique.Passes[0].Apply();
@@ -364,13 +385,34 @@ namespace gttwin.MainC
             {
                 // Losowanie randomowego typu bloku
                 var random = new Random();
-                var type = random.Next(1, 7);
+
+                int type = 0;
+
+                if (nextShape == 0)
+                {
+                    var firstType = random.Next(1, 7);
+                    var next = random.Next(1, 7);
+
+                    nextShape = next;
+                    type = firstType;
+                }
+                else
+                {
+                    type = nextShape;
+                    var next = random.Next(1, 7);
+
+                    nextShape = next;
+                }
+                    
 
                 // Losowanie randomowego obrotu klocka, od 0 do 360
                 float rot = (float)random.Next(0, 360);
-
+                
                 // Stworzenie bloku = jednoznacze z dodaniem go do świata
                 CurrentBlock = new Block(GraphicsDevice, ref world, tex, (BLOCKTYPES)type, rot);
+
+                // Dodanie handlera odpalanego przy kolizji
+                CurrentBlock.myBody.OnCollision += new OnCollisionEventHandler(myBody_OnCollision);
 
                 CurrentBlock.myBody.IgnoreGravity = true;
                 CurrentBlock.myBody.LinearVelocity = new Vector2(0f, 0.6f);
@@ -399,7 +441,7 @@ namespace gttwin.MainC
             // SprawdzaczKolizji.Start();
 
             // Sprawdzanie kolizji spadającego klocka
-            UpdateBlockCollision();
+            UpdateLevelData();
 
             // Zmiana pozycji kamery ze względu na wysokość wieży
             UpdateHighestBodyPos();
@@ -430,12 +472,29 @@ namespace gttwin.MainC
         }
 
         /// <summary>
+        /// Event handler przy kolizji klocka
+        /// </summary>
+        /// <param name="fixtureA"></param>
+        /// <param name="fixtureB"></param>
+        /// <param name="contact"></param>
+        /// <returns></returns>
+        bool myBody_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
+        {
+            // Blok doleciał do jakiegos innego - oznacz flagę że doleciał, oraz usuń ten event handler, aby nie
+            // Powtarzało się w nieskonczoność.
+
+            blockOnHisWay = false;
+            fixtureA.Body.OnCollision -= myBody_OnCollision;
+            return true;
+        }
+
+        /// <summary>
         /// Delegat dla wątku oddzielnego który sprawdza inputa
         /// </summary>
         private void UpdateInput()
         {
             GameInputManager.Update();
-
+            var przes = new Vector2(1,0);
 
             if (GameInputManager["BackToMenu"].IsTapped)
             {
@@ -449,6 +508,29 @@ namespace gttwin.MainC
             {
                 
                 
+            }
+
+            if (GameInputManager["CCW"].IsDown)
+            {
+                CurrentBlock.myBody.Rotation -= 0.01f;
+
+            }
+
+            if (GameInputManager["CW"].IsDown)
+            {
+                CurrentBlock.myBody.Rotation += 0.01f;
+
+            }
+
+            if (GameInputManager["Left"].IsDown)
+            {
+                
+                CurrentBlock.myBody.Position -= 0.01f * przes;
+            }
+
+            if (GameInputManager["Right"].IsDown)
+            {
+                CurrentBlock.myBody.Position += 0.01f * przes;
             }
 
         }
@@ -465,7 +547,7 @@ namespace gttwin.MainC
              *  
              * **/
 
-            foreach (Block b in blocksOnPlatform)
+            /*foreach (Block b in blocksOnPlatform)
             {
 
                 if (b.myBody.LinearVelocity == Vector2.Zero)
@@ -477,38 +559,16 @@ namespace gttwin.MainC
                         b.heightChecked = true;
                     }
                 }
-            }
+            }*/
 
 
         }
 
         /// <summary>
-        /// Sprawdzanie kolizji spadającego klocka
+        /// Sprawdzanie wieży - czy osiągneła linię levelu, itd
         /// </summary>
-        private void UpdateBlockCollision()
+        private void UpdateLevelData()
         {
-            // Jeżeli nastąpił kontakt spadającego klocka z jakimś
-            // Innym ciałem, zmien flagę, że można puścić następny kloc.
-
-            // TODO: Ogarnąć czy to jest dokladny sposob bo chyba nie.
-            if (CurrentBlock != null)
-            {
-                if (CurrentBlock.myBody.ContactList != null)
-                {
-                    // Zmien flage.
-                    blockOnHisWay = false;
-
-                    //blocksOnPlatform.Add(CurrentBlock);
-                    pos = CurrentBlock.myBody.Position;
-                    rot = CurrentBlock.myBody.Rotation;
-                    // CurrentBlock.myBody.LinearVelocity = Vector2.Zero;
-                    CurrentBlock = null;
-                    // CurrentBlock.myBody.LinearVelocity = Vector2.Zero;
-                    // CurrentBlock.myBody.IgnoreGravity = false;
-                    // Zapomnij tego klocka jako currenta.
-                    //CurrentBlock = null;
-                }
-            }
 
 
         }
@@ -563,6 +623,12 @@ namespace gttwin.MainC
             else
                 return "null";
         }
+
+        #endregion
+
+        #region pola Hudu
+        private SpriteFont hudFont;
+
 
         #endregion
 

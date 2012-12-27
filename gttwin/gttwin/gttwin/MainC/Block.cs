@@ -162,7 +162,11 @@ namespace gtt.MainC
                  case BLOCKTYPES.I_SHAPE:
                      for (int i = 1; i < 5; i++)
                      {
-                         rects[i-1].Translate(new Vector2(0, i *2*GameCC.Settings.blockSize));
+                         rects[0].Translate(new Vector2(0, -0.75f*GameCC.Settings.blockSize));
+                         rects[1].Translate(new Vector2(0, -0.25f*GameCC.Settings.blockSize));
+                         rects[2].Translate(new Vector2(0, 0.25f*GameCC.Settings.blockSize));
+                         rects[3].Translate(new Vector2(0, 0.75f*GameCC.Settings.blockSize));
+                        // rects[i - 1].Translate(new Vector2(GameCC.Settings.blockSize/2, (i * 2*GameCC.Settings.blockSize - 2*GameCC.Settings.blockSize)));
                      }
 
                      break;
@@ -172,13 +176,10 @@ namespace gtt.MainC
                  case BLOCKTYPES.J_SHAPE:
                      for (int i = 1; i < 5; i++)
                      {
-                         if (i == 4)
-                         {
-                             rects[i - 1].Translate(new Vector2(-2 * GameCC.Settings.blockSize, i * GameCC.Settings.blockSize + (2 * GameCC.Settings.blockSize)));
-                         }
-                         else
-                             rects[i - 1].Translate(new Vector2(0, i * 2 * GameCC.Settings.blockSize));
-                         
+                         rects[0].Translate(new Vector2(0, -0.75f * GameCC.Settings.blockSize));
+                         rects[1].Translate(new Vector2(0, -0.25f * GameCC.Settings.blockSize));
+                         rects[2].Translate(new Vector2(0, 0.25f * GameCC.Settings.blockSize));
+                         rects[3].Translate(new Vector2(-0.5f * GameCC.Settings.blockSize, 0.25f * GameCC.Settings.blockSize));
                      }
 
                      
@@ -189,12 +190,10 @@ namespace gtt.MainC
                  case BLOCKTYPES.L_SHAPE:
                      for (int i = 1; i < 5; i++)
                      {
-                         if (i == 4)
-                         {
-                             rects[i - 1].Translate(new Vector2(2 * GameCC.Settings.blockSize, i * GameCC.Settings.blockSize + (2 * GameCC.Settings.blockSize)));
-                         }
-                         else
-                             rects[i - 1].Translate(new Vector2(0, i * 2 * GameCC.Settings.blockSize));
+                         rects[0].Translate(new Vector2(0, -0.75f * GameCC.Settings.blockSize));
+                         rects[1].Translate(new Vector2(0, -0.25f * GameCC.Settings.blockSize));
+                         rects[2].Translate(new Vector2(0, 0.25f * GameCC.Settings.blockSize));
+                         rects[3].Translate(new Vector2(0.5f * GameCC.Settings.blockSize, 0.25f * GameCC.Settings.blockSize));
                          
                      }
 
@@ -205,15 +204,11 @@ namespace gtt.MainC
                  case BLOCKTYPES.O_SHAPE:
                      for (int i = 1; i < 5; i++)
                      {
-                         if (i == 2)
-                             rects[i - 1].Translate(new Vector2(2 * GameCC.Settings.blockSize, 0));
-
-                         else if(i == 3)
-                             rects[i - 1].Translate(new Vector2(0, 2 * GameCC.Settings.blockSize));  
-                        
-                         else if(i == 4)
-                             rects[i - 1].Translate(new Vector2(2 * GameCC.Settings.blockSize, 2 * GameCC.Settings.blockSize));  
-
+                         rects[0].Translate(new Vector2(-0.25f*GameCC.Settings.blockSize, -0.25f * GameCC.Settings.blockSize));
+                         rects[1].Translate(new Vector2(0.25f * GameCC.Settings.blockSize, -0.25f * GameCC.Settings.blockSize));
+                         rects[2].Translate(new Vector2(-0.25f*GameCC.Settings.blockSize, 0.25f * GameCC.Settings.blockSize));
+                         rects[3].Translate(new Vector2(0.25f*GameCC.Settings.blockSize, 0.25f * GameCC.Settings.blockSize));
+                         
                      }
                      break;
                  case BLOCKTYPES.S_SHAPE:
@@ -221,15 +216,10 @@ namespace gtt.MainC
 
                      for (int i = 1; i < 5; i++)
                      {
-                         if (i == 2)
-                             rects[i - 1].Translate(new Vector2(2 * GameCC.Settings.blockSize, 0));
-
-                         else if(i == 3)
-                             rects[i - 1].Translate(new Vector2(0, 2 * GameCC.Settings.blockSize));  
-                        
-                         else if(i == 4)
-                             rects[i - 1].Translate(new Vector2(-2 * GameCC.Settings.blockSize, 2 * GameCC.Settings.blockSize));  
-
+                         rects[0].Translate(new Vector2(0, -0.25f * GameCC.Settings.blockSize));
+                         rects[1].Translate(new Vector2(0, 0.25f * GameCC.Settings.blockSize));
+                         rects[2].Translate(new Vector2(0.5f*GameCC.Settings.blockSize, -0.25f * GameCC.Settings.blockSize));
+                         rects[3].Translate(new Vector2(-0.5f*GameCC.Settings.blockSize, 0.25f * GameCC.Settings.blockSize));
                      }
 
                      break;
@@ -237,30 +227,20 @@ namespace gtt.MainC
 
                      for (int i = 1; i < 5; i++)
                      {
-                         if (i == 2)
-                             rects[i - 1].Translate(new Vector2(0, 2 * GameCC.Settings.blockSize));
-
-                         else if (i == 3)
-                             rects[i - 1].Translate(new Vector2(-2 * GameCC.Settings.blockSize, 2 * GameCC.Settings.blockSize));
-
-                         else if (i == 4)
-                             rects[i - 1].Translate(new Vector2(2 * GameCC.Settings.blockSize, 2 * GameCC.Settings.blockSize));
-
+                         rects[0].Translate(new Vector2(0, -0.5f * GameCC.Settings.blockSize));
+                         rects[1].Translate(new Vector2(0, 0));
+                         rects[2].Translate(new Vector2(-0.5f * GameCC.Settings.blockSize, 0));
+                         rects[3].Translate(new Vector2(0.5f * GameCC.Settings.blockSize, 0));
                      }
 
                      break;
                  case BLOCKTYPES.Z_SHAPE:
                      for (int i = 1; i < 5; i++)
                      {
-                         if (i == 2)
-                             rects[i - 1].Translate(new Vector2(0, 2 * GameCC.Settings.blockSize));
-
-                         else if (i == 3)
-                             rects[i - 1].Translate(new Vector2(2 * GameCC.Settings.blockSize, 2 * GameCC.Settings.blockSize));
-
-                         else if (i == 4)
-                             rects[i - 1].Translate(new Vector2(-2 * GameCC.Settings.blockSize, 0));
-
+                         rects[0].Translate(new Vector2(0, -0.25f * GameCC.Settings.blockSize));
+                         rects[1].Translate(new Vector2(0, 0.25f * GameCC.Settings.blockSize));
+                         rects[2].Translate(new Vector2(-0.5f * GameCC.Settings.blockSize, -0.25f * GameCC.Settings.blockSize));
+                         rects[3].Translate(new Vector2(0.5f * GameCC.Settings.blockSize, 0.25f * GameCC.Settings.blockSize));
                      }
 
 
