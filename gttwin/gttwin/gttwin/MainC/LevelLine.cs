@@ -19,6 +19,9 @@ namespace gtt.MainC
         /// <summary>
         /// Wysokosc danej linii. Należy ją zmieniać w miare jak idziemy do góry, i wywolywac rysowanie.
         /// Co kazdy draw gry. Wtedy linia się bedzie rysowac w takiej wysokosci jak ta.
+        /// Ta wysokosc jest w jednostkach SYMULACJI
+        /// 
+        /// Wysokosc do rysowania znajduje sie w zmiennej <see cref="heightForDisplay"/>
         /// </summary>
         public int height;
 
@@ -26,7 +29,7 @@ namespace gtt.MainC
         /// <summary>
         /// Wysokosc skonwertowana na jednostki symulacji i zmniejszona tak aby pasowała do symulacji, nie ma wpływu na rysowanie
         /// </summary>
-        public double heightForSimulation;
+        public float heightForDisplay;
 
         /// <summary>
         /// Wierzchołki
@@ -48,25 +51,25 @@ namespace gtt.MainC
         /// </summary>
         public LevelLine(int _height, GraphicsDevice graphic)
         {
-            decreasingFactor = 0.5;
+            //decreasingFactor = 0.5;
 
-            if (_height <= 100)
-                throw new Exception("Ustawianie wysokosci ponizej 100 jest bez sensu, ");
+            //if (_height <= 100)
+            //   throw new Exception("Ustawianie wysokosci ponizej 100 jest bez sensu, ");
 
             // Przypisania, tworzenie obiektow
             height = _height;
+            heightForDisplay = ConvertUnits.ToDisplayUnits(height);
 
-            heightForSimulation = ConvertUnits.ToSimUnits(_height)*10;
+            //heightForSimulation = ConvertUnits.ToSimUnits(_height);
            // heightText = new TextBlock();
             // Wypelnienie linii textem
            // heightText.Text = height.ToString() + "m";
 
-            var realHeight = graphic.Viewport.Height - _height;
 
             vertices = new VertexPositionColor[2];
-            vertices[0].Position = new Vector3(0, realHeight, 0);
+            vertices[0].Position = new Vector3(0, heightForDisplay, 0);
             vertices[0].Color = Color.White;
-            vertices[1].Position = new Vector3(graphic.Viewport.Width, realHeight, 0);
+            vertices[1].Position = new Vector3(graphic.Viewport.Width, heightForDisplay, 0);
             vertices[1].Color = Color.White;
         }
 

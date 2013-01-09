@@ -40,8 +40,9 @@ namespace gttwin.MainC
              * Tutaj odbywa się dodanie poziomów do gry
              * */
             LevelsList = new LinkedList<Level>();
+            LevelsList.AddLast(new Level(4, 200));
 
-            for (uint x = 0; x < 10; x++)
+            /*for (uint x = 0; x < 10; x++)
             {
                 uint a = 110 + 15 * x;
                 uint b = 200 - 5 * x;
@@ -52,7 +53,7 @@ namespace gttwin.MainC
                     LevelsList.AddLast(new Level(a, b));
 
             }
-
+            */
 
             // Ustawienie currenta na pierwszy lewel
             currentChosenLevel = LevelsList.First;

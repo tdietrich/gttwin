@@ -14,14 +14,17 @@ using Timer = System.Timers.Timer;
 /*
  * TODO:
  *  Kamera&spawnPoint   [GAMEPLAY]
+ *  Rysowanie linii lvl [GAMEPLAY] - [DONE]
  *  Statystyki          [STATS]
  *  Polaczenie z siecia [NET_CONNETION]
+ *      Done:
+ *          - Klasa Wrapper dla funkcji sieciowych - NetControler.cs
  *  Menu/Gui            [GUI]
  *  
  * 
  * 
  * 
- * *//
+ * */
 namespace gttwin.MainC
 {
 
@@ -51,7 +54,12 @@ namespace gttwin.MainC
         /// </summary>
         public World world;
 
+        /// <summary>
+        /// Hashmapa/słownik textur
+        /// </summary>
+        public Dictionary<BLOCKTYPES, Texture2D> ShapesTextures;
 
+        
         /// <summary>
         /// Lista bloków leżących na platformie
         /// </summary>
@@ -202,7 +210,10 @@ namespace gttwin.MainC
         #endregion
 
         # region Level Specific vars
-
+        /// <summary>
+        /// Wysyokosc do osiagniecia w levelu w jednostkach symulacj
+        /// </summary>
+        private int TargetHeight;
         protected int floorHeight;
         protected int platformHeight;
         protected int platformWidth;
@@ -253,7 +264,9 @@ namespace gttwin.MainC
             winFlag     = false;
             countDownStarted = false;
             notStableFlag = false;
-            // Utworzenie timera ktory bedzie zliczał w doł w przypadku osiagniecia wysokosci
+
+            // Utworzenie timera ktory bedzie zliczał w doł w przypadku osiagniecia wysokosci,
+            // Czas odliczania to 3 - arg. sec TimeSpan'a
             CountDownTimer = new TimerGtt(TimerGttModes.COUNTDOWN, new TimeSpan(0, 0, 0, 3, 0));
 
             // Ustawienie defaultowych danych, w calej grze dane są z tej zmiennej brane
@@ -339,6 +352,7 @@ namespace gttwin.MainC
             timer.Start();
         }
 
+
         /// <summary>
         /// Odpalane w momencie gdy cokolwiek spadnie na podloge - wywoluje sekwencje zdarzeń, zakonczenia levelu
         /// poprzez przegraną zmieniając flagę 
@@ -375,6 +389,17 @@ namespace gttwin.MainC
         {
             base.LoadContent();
 
+
+            // ładowanie textur kształtów do słownika
+            ShapesTextures = new Dictionary<BLOCKTYPES, Texture2D>();
+
+            ShapesTextures.Add(BLOCKTYPES.I_SHAPE, Game.Content.Load<Texture2D>("shapes/ishape"));
+            ShapesTextures.Add(BLOCKTYPES.J_SHAPE, Game.Content.Load<Texture2D>("shapes/jshape"));
+            ShapesTextures.Add(BLOCKTYPES.L_SHAPE, Game.Content.Load<Texture2D>("shapes/lshape"));
+            ShapesTextures.Add(BLOCKTYPES.O_SHAPE, Game.Content.Load<Texture2D>("shapes/oshape"));
+            ShapesTextures.Add(BLOCKTYPES.S_SHAPE, Game.Content.Load<Texture2D>("shapes/sshape"));
+            ShapesTextures.Add(BLOCKTYPES.T_SHAPE, Game.Content.Load<Texture2D>("shapes/tshape"));
+            ShapesTextures.Add(BLOCKTYPES.Z_SHAPE, Game.Content.Load<Texture2D>("shapes/zshape"));
 
 
             // TODO: use this.content to load your game content here
@@ -472,17 +497,17 @@ namespace gttwin.MainC
                     position = CurrentBlock.myBody.Position.Y;
 
                 }
-
+                
                 hudBatch.Begin();
                 // Rysowanie tekstu
-                //hudBatch.DrawString(hudFont, "Next Shape: " + lineReached, new Vector2(10, 10), Color.Black);
-                
+                hudBatch.DrawString(hudFont, "Next Shape: " , new Vector2(510, 25), Color.Black);
+                if(nextShape != 0)
+                    hudBatch.Draw(ShapesTextures[komunikat], new Rectangle(720, 20, (int)(ShapesTextures[komunikat].Width*0.8), (int)(ShapesTextures[komunikat].Height*0.8)),Color.White);
                 hudBatch.DrawString(hudFont, "Level: " + levelImPlayingNumber.ToString(), new Vector2(320, 10), Color.Black);
                 hudBatch.DrawString(hudFont, "LineAt: " + LevelLines[0].height.ToString(), new Vector2(10, 40), Color.Black);
-                hudBatch.DrawString(hudFont, "LineAtSim: " + LevelLines[0].heightForSimulation.ToString(), new Vector2(10, 70), Color.Black);
+                hudBatch.DrawString(hudFont, "LineAtSim: " + LevelLines[0].heightForDisplay.ToString(), new Vector2(10, 70), Color.Black);
                 hudBatch.DrawString(hudFont, "PWidth: " + platformWidth.ToString(), new Vector2(10, 100), Color.Black);
                 hudBatch.DrawString(hudFont, "pos: " + position.ToString(), new Vector2(10, 120), Color.Black);
-                hudBatch.DrawString(hudFont, "time: " + timeElapsed, new Vector2(10, 100), Color.Aqua);
                 // Zamykanie rysowania duszków w danej klatce
                 hudBatch.End();
             }
@@ -504,12 +529,6 @@ namespace gttwin.MainC
                 hudBatch.DrawString(hudFont, "Wysokosc osiagnieta\n Obliczanie Stabilnosci...\n" + CountDownTimer.ToString(), new Vector2(150, 180), Color.Green);
                 hudBatch.End();
                 
-            }
-            if (lineReached)
-            {
-                hudBatch.Begin();
-                hudBatch.DrawString(hudFont, "LineReached:" + lineReached.ToString(), new Vector2(150, 180), Color.Green);
-                hudBatch.End();
             }
 
         }
@@ -688,7 +707,7 @@ namespace gttwin.MainC
             // Powtarzało się w nieskonczoność.
             for (float x = -_platform.Position.X; x <= _platform.Position.X * 2; x = x + 0.05f)
             {
-                List<Fixture> a = world.TestPointAll(new Vector2(x, 4.5f));
+                List<Fixture> a = world.TestPointAll(new Vector2(x, (float)TargetHeight));
                 if (a.Count != 0)
                 {
                     if (a[0].Body.Equals(fixtureA.Body))
@@ -940,7 +959,7 @@ namespace gttwin.MainC
 
         #region pola Hudu
         private SpriteFont hudFont;
-        private int TargetHeight;
+
 
 
 

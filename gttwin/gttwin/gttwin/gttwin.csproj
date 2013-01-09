@@ -97,6 +97,7 @@
     <Compile Include="MainC\Player.cs" />
     <Compile Include="MainC\RegisterComponent.cs" />
     <Compile Include="MainC\Sprite.cs" />
+    <Compile Include="MainC\StatsModule.cs" />
     <Compile Include="MainC\TextRenderer.cs" />
     <Compile Include="MainC\TimerGtt.cs" />
     <Compile Include="PrimitiveBatch.cs" />
