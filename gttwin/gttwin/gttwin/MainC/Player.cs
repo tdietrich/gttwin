@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace gtt.MainC
+namespace gttwin.MainC
 {
 
     /// <summary>
@@ -11,10 +11,13 @@ namespace gtt.MainC
     /// </summary>
     public class Player : IPlayer
     {
-        public Player(string name)
+
+        public Player(string login, string password,int[] _unlockedLevels)
         {
-
-
+            this.login = login;
+            this.pass = password;
+            this.UnlockedLevels = new int[_unlockedLevels.Length];
+            _unlockedLevels.CopyTo(this.UnlockedLevels, 0);
         }
 
         public void AddPoints(int numof)
@@ -31,5 +34,26 @@ namespace gtt.MainC
         {
             throw new NotImplementedException();
         }
+
+        /// <summary>
+        /// Metoda do spradzania czy jest level w tabloicy
+        /// </summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public bool IsLevelUnlocked(int level)
+        {
+            foreach (int x in UnlockedLevels)
+            {
+                if (x.Equals(level))
+                    return true;
+            }
+            return false;
+
+        }
+        public string login;
+        public string pass;
+        public int[] UnlockedLevels;
+
     }
+
 }

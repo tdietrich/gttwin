@@ -117,7 +117,7 @@ namespace gtt.MainC
             myBody.Mass = 10;
 
             // Handler for collision
-            myBody.OnCollision += new OnCollisionEventHandler(myBody_OnCollision);
+            //myBody.OnCollision += new OnCollisionEventHandler(myBody_OnCollision);
 
         }
 
@@ -131,8 +131,8 @@ namespace gtt.MainC
         /// <returns></returns>
         bool myBody_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
         {
-            myBody.IgnoreGravity = false;
-            myBody.LinearVelocity = Vector2.Zero;
+            //myBody.IgnoreGravity = false;
+            //myBody.LinearVelocity = Vector2.Zero;
             return true;
         }
 

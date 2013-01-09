@@ -19,12 +19,6 @@ namespace gttwin.MainC
             : base(game)
         {
 
-            /*
-             * Dodawanie informacji o inpucie do managera
-             * */
-            MenuInputManager = new InputManager();
-            MenuInputManager.AddAction("Play");
-            MenuInputManager["Play"].Add(Keys.Enter);
 
 
         }
@@ -37,6 +31,15 @@ namespace gttwin.MainC
         /// </summary>
         public override void Initialize()
         {
+            /*
+             * Dodawanie informacji o inpucie do managera
+             * */
+            MenuInputManager = new InputManager();
+            MenuInputManager.AddAction("Play");
+            MenuInputManager.AddAction("Close");
+            MenuInputManager["Play"].Add(Keys.Enter);
+            MenuInputManager["Close"].Add(Keys.E);
+
             base.Initialize();
         }
 
@@ -52,10 +55,10 @@ namespace gttwin.MainC
             // ladowanie fontu z assetow
             contentFont = Game.Content.Load<SpriteFont>("font");
 
-            komunikat = "Wcisnij ENTER aby przejsc do gry!";
+            komunikat = "[Enter] - Graj";
 
-            Vector2 wymiarKom = contentFont.MeasureString(komunikat);
-            wspNaSrodek = new Vector2((GraphicsDevice.Viewport.TitleSafeArea.Width - wymiarKom.X) / 2, (GraphicsDevice.Viewport.TitleSafeArea.Height - wymiarKom.Y) / 2);
+           // Vector2 wymiarKom = contentFont.MeasureString(komunikat);
+           // wspNaSrodek = new Vector2((GraphicsDevice.Viewport.TitleSafeArea.Width - wymiarKom.X) / 2, (GraphicsDevice.Viewport.TitleSafeArea.Height - wymiarKom.Y) / 2);
             base.LoadContent();
         }
         
@@ -71,11 +74,14 @@ namespace gttwin.MainC
             
             spriteBatch.Begin();
             // Rysowanie tekstu
-            spriteBatch.DrawString(contentFont, komunikat, wspNaSrodek, Color.Black);
+            spriteBatch.DrawString(contentFont, komunikat, new Vector2(120,150), Color.Black);
+            spriteBatch.DrawString(contentFont, "[e] - Wyjdz z gry", new Vector2(120, 170), Color.Black);
+            spriteBatch.DrawString(contentFont, "Gracz: " + Game1.player.login, new Vector2(10, 50), Color.Yellow);
+            spriteBatch.DrawString(contentFont, "Leveli odblokowanych: " + Game1.player.UnlockedLevels.Length.ToString(), new Vector2(30, 80), Color.Yellow);
             // Zamykanie rysowania duszków w danej klatce
             spriteBatch.End();
 
-
+            //NetControler.SaveScore("admin@admin.com", 10000);
             
         }
 
@@ -92,14 +98,25 @@ namespace gttwin.MainC
 
             MenuInputManager.Update();
 
-            if (MenuInputManager["Play"].IsDown)
+            if (MenuInputManager["Play"].IsTapped)
             {
-                // Dodanie komponentu gry
-                Game.Components.Add(new GameCC(Game));
+                // Dodanie komponentu wyboru ekranu
+                //Game.Components.Add(new GameCC(Game));
+
+                // Dodanie komponentu wyboru leveli
+                Game.Components.Add(new LevelChooserComponent(Game));
+
+                //Game.Components.Add(new RegisterComponent(Game));
 
                 // Usuniecie komponentu MainMenu
                 Game.Components.Remove((IGameComponent)this);
             }
+            if (MenuInputManager["Close"].IsTapped)
+            {
+                // TUTAJ JEST EVENT ON EXIT MOZNABY COS ZAPISAC MOZE ??!?!?!?!?
+                this.Game.Exit();
+            }
+
             
         }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-namespace gtt.MainC
+namespace gttwin.MainC
 {
     /// <summary>
     /// Interfejs Playera

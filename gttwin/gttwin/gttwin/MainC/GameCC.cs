@@ -6,13 +6,22 @@ using FarseerPhysics.Factories;
 using gtt;
 using gtt.MainC;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Threading;
-using FarseerPhysics.Dynamics.Joints;
+using Timer = System.Timers.Timer;
 
-
+/*
+ * TODO:
+ *  Kamera&spawnPoint   [GAMEPLAY]
+ *  Statystyki          [STATS]
+ *  Polaczenie z siecia [NET_CONNETION]
+ *  Menu/Gui            [GUI]
+ *  
+ * 
+ * 
+ * 
+ * *//
 namespace gttwin.MainC
 {
 
@@ -26,16 +35,17 @@ namespace gttwin.MainC
         /// Konstruktor
         /// </summary>
         /// <param name="game"></param>
-        public GameCC(Game game)
+        public GameCC(Game game, Level thisLevelInfo, uint levelNum)
             :base(game)
         {
-            this.gameref = game;
-
+            platformWidth = (int)thisLevelInfo.PlatformWidth;
+            this.TargetHeight = (int)thisLevelInfo.TargetHeight;
+            this.levelImPlayingNumber = levelNum;
         }
 
         # region Fields
 
-        private Game gameref;
+
         /// <summary>
         /// Świat fizyczny
         /// </summary>
@@ -46,6 +56,11 @@ namespace gttwin.MainC
         /// Lista bloków leżących na platformie
         /// </summary>
         protected List<Block> blocksOnPlatform;
+
+        /// <summary>
+        /// Trzyma informacyjnie numer levelu w ktory gramy
+        /// </summary>
+        private uint levelImPlayingNumber;
 
         /// <summary>
         /// Tekstury temporalne
@@ -86,6 +101,7 @@ namespace gttwin.MainC
 
         private SpriteBatch spriteBatch;
         private SpriteBatch hudBatch;
+        private SpriteBatch endingBatch;
         /// <summary>
         /// Struktura trzymające settingsy gry
         /// </summary>
@@ -128,11 +144,61 @@ namespace gttwin.MainC
         private InputManager GameInputManager;
 
         /// <summary>
-        /// Wątek do zarządzania inputem
+        /// Timer zliczający czas gry
         /// </summary>
-        private Thread InputThread;
+        public Timer timer { private set; get; }
 
 
+        /// <summary>
+        /// Czas grania w level
+        /// </summary>
+        private string timeElapsed;
+
+        /// <summary>
+        /// Szybkosc bloku
+        /// </summary>
+        static public float BlockSpeed = 0.6f;
+
+        /// <summary>
+        /// Osiągnięto wysokosc linii
+        /// </summary>
+        private bool lineReached;
+
+        /// <summary>
+        /// Flaga informujaca czy koniec gry - czy spadlo cos na podloge.
+        /// </summary>
+        private bool failFlag;
+
+        /// <summary>
+        /// Flaga informujaca ze nastapil koniec gry poprzez osiagniecie wysokosci
+        /// </summary>
+        private bool winFlag;
+
+        /// <summary>
+        /// Flaga = true jeśli, wieza osiagnela wymaganą wysokość i zaczelo sie odliczanie sprawdzające czy klocki nie pospadały
+        /// inaczej false.
+        /// </summary>
+        private bool countDownStarted;
+
+        /// <summary>
+        /// Timer zliczajacy czas ustabilizowania sie wiezy - po ktorym jezeli nie spadnie zaden klocek to wygrana
+        /// </summary>
+        private TimerGtt CountDownTimer;
+
+        /// <summary>
+        /// Ciało które osiągneło wysokość porządaną
+        /// </summary>
+        private Body WinningBody;
+
+        /// <summary>
+        /// Pozycja w momencie złapania linii przez cialo wygrywajace
+        /// </summary>
+        private Vector2 WinningBodyPos;
+
+        /// <summary>
+        /// Flaga informuajca nas ze przegrana z powodu niestabilnosci wiezy
+        /// </summary>
+        private bool notStableFlag;
         #endregion
 
         # region Level Specific vars
@@ -160,24 +226,38 @@ namespace gttwin.MainC
 
             GameInputManager = new InputManager();
             GameInputManager.AddAction("BackToMenu");
+            GameInputManager.AddAction("RepeatLevel");
             GameInputManager.AddAction("Pause");
             GameInputManager.AddAction("CCW");
             GameInputManager.AddAction("CW");
             GameInputManager.AddAction("Left");
             GameInputManager.AddAction("Right");
 
+
+            GameInputManager["RepeatLevel"].Add(Keys.Enter);
             GameInputManager["BackToMenu"].Add(Keys.Escape);
             GameInputManager["Pause"].Add(Keys.P);
             GameInputManager["CCW"].Add(Keys.Up);
             GameInputManager["CW"].Add(Keys.Down);
             GameInputManager["Left"].Add(Keys.Left);
             GameInputManager["Right"].Add(Keys.Right);
-            
+
+            // Wysokosci podlogi i platformy
             floorHeight = 15;
             platformHeight = 40;
-            platformWidth = 250;
+
+
+            // Ustawienie flag zwyciestwa lub przegranej
+            failFlag    = false;
+            lineReached = false;
+            winFlag     = false;
+            countDownStarted = false;
+            notStableFlag = false;
+            // Utworzenie timera ktory bedzie zliczał w doł w przypadku osiagniecia wysokosci
+            CountDownTimer = new TimerGtt(TimerGttModes.COUNTDOWN, new TimeSpan(0, 0, 0, 3, 0));
+
             // Ustawienie defaultowych danych, w calej grze dane są z tej zmiennej brane
-            Settings = new GameSettings(OptionsHandler.blocksBounciness, OptionsHandler.blocksFriction, 0.12f, new Vector2(0.0f, 1.0f),
+            Settings = new GameSettings(OptionsHandler.blocksFriction, OptionsHandler.blocksBounciness, 0.12f, new Vector2(0.0f, 1.0f),
                                         new Vector2(this.GraphicsDevice.Viewport.Width / 2, 40));
 
             // Standardowy "Efekt" do rysowania prymitywów w XNA
@@ -189,17 +269,17 @@ namespace gttwin.MainC
                 0, 1);                                         // near, far plane
 
 
-            // Get the content manager from the application
+            // Stworzenie batchy do rysowania
             spriteBatch = new SpriteBatch(GraphicsDevice);
             hudBatch = new SpriteBatch(GraphicsDevice);
+            endingBatch = new SpriteBatch(GraphicsDevice);
+
+
+            // Stworzenie kontenera na linie levelu
             LevelLines = new List<LevelLine>();
 
-
-
             // Dodanie linii levelu.
-            LevelLines.Add(new LevelLine(250, GraphicsDevice));
-            LevelLines.Add(new LevelLine(500, GraphicsDevice));
-
+            LevelLines.Add(new LevelLine((int)TargetHeight, GraphicsDevice));
 
 
             // Inicjalizacja świata
@@ -227,19 +307,21 @@ namespace gttwin.MainC
                                                 ConvertUnits.ToSimUnits(floorHeight),
                                                 10f);
             //_floor.Position = ConvertUnits.ToSimUnits(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 50);
-            _floor.Position = ConvertUnits.ToSimUnits(GraphicsDevice.Viewport.Width/2, GraphicsDevice.Viewport.Height - (floorHeight-10));
+            Vector2 posi = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - floorHeight/2);
+            _floor.Position = ConvertUnits.ToSimUnits(posi);
             _floor.BodyType = BodyType.Static;
             _floor.IsStatic = true;
             _floor.Restitution = 0.1f;
             _floor.Friction = 2.5f;
-
+            _floor.OnCollision += new OnCollisionEventHandler(CheckFloorCollision);
             // Tworzenie platformy
             _platform = BodyFactory.CreateRectangle(world,
                                                 ConvertUnits.ToSimUnits(platformWidth),
                                                 ConvertUnits.ToSimUnits(platformHeight),
                                                 10f);
             //_platform.Position = ConvertUnits.ToSimUnits(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 100);
-            _platform.Position = ConvertUnits.ToSimUnits(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - (floorHeight-10) - (platformHeight-12) );
+            Vector2 posi2 = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - platformHeight/2 - floorHeight);
+            _platform.Position = ConvertUnits.ToSimUnits(posi2);
             _platform.BodyType = BodyType.Static;
             _platform.IsStatic = true;
             _platform.Restitution = 0.1f;
@@ -252,7 +334,39 @@ namespace gttwin.MainC
             // lista bloków leżących na platformie
             blocksOnPlatform = new List<Block>();
 
+            timer = new Timer(1000);
+            timer.Elapsed += new System.Timers.ElapsedEventHandler(timerCallback);
+            timer.Start();
         }
+
+        /// <summary>
+        /// Odpalane w momencie gdy cokolwiek spadnie na podloge - wywoluje sekwencje zdarzeń, zakonczenia levelu
+        /// poprzez przegraną zmieniając flagę 
+        /// <code>
+        ///     failFlag = true;
+        /// </code>
+        /// </summary>
+        /// <param name="fixtureA"></param>
+        /// <param name="fixtureB"></param>
+        /// <param name="contact"></param>
+        /// <returns></returns>
+        bool CheckFloorCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
+        {
+            failFlag = true;
+            return true;
+        }
+
+        /// <summary>
+        /// Callback timera liczacego czas gry
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void timerCallback(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            timeElapsed = e.SignalTime.Second.ToString();
+        }
+
 
         /// <summary>
         /// Load content
@@ -344,13 +458,60 @@ namespace gttwin.MainC
         /// </summary>
         private void DrawHud()
         {
-            BLOCKTYPES komunikat = (BLOCKTYPES)nextShape;
+            if (!winFlag && !failFlag && !lineReached && !countDownStarted)
+            {
+                BLOCKTYPES komunikat = (BLOCKTYPES)nextShape;
+                string pos = "";
+                double position = 0.0;
 
-            hudBatch.Begin();
+                
+                if (CurrentBlock != null)
+                {
+                    pos = ConvertUnits.ToDisplayUnits(CurrentBlock.myBody.Position).ToString();
+                   // position = GraphicsDevice.Viewport.Height - platformHeight - floorHeight - 10 - ConvertUnits.ToDisplayUnits(CurrentBlock.myBody.Position).Y;
+                    position = CurrentBlock.myBody.Position.Y;
+
+                }
+
+                hudBatch.Begin();
                 // Rysowanie tekstu
-                hudBatch.DrawString(hudFont, "Next Shape: " + komunikat.ToString(), new Vector2(10, 10), Color.Black);
+                //hudBatch.DrawString(hudFont, "Next Shape: " + lineReached, new Vector2(10, 10), Color.Black);
+                
+                hudBatch.DrawString(hudFont, "Level: " + levelImPlayingNumber.ToString(), new Vector2(320, 10), Color.Black);
+                hudBatch.DrawString(hudFont, "LineAt: " + LevelLines[0].height.ToString(), new Vector2(10, 40), Color.Black);
+                hudBatch.DrawString(hudFont, "LineAtSim: " + LevelLines[0].heightForSimulation.ToString(), new Vector2(10, 70), Color.Black);
+                hudBatch.DrawString(hudFont, "PWidth: " + platformWidth.ToString(), new Vector2(10, 100), Color.Black);
+                hudBatch.DrawString(hudFont, "pos: " + position.ToString(), new Vector2(10, 120), Color.Black);
+                hudBatch.DrawString(hudFont, "time: " + timeElapsed, new Vector2(10, 100), Color.Aqua);
                 // Zamykanie rysowania duszków w danej klatce
-            hudBatch.End();
+                hudBatch.End();
+            }
+
+            else if (failFlag || winFlag)
+            {
+                if (failFlag)
+                    DrawEndLevelInfo(false);
+                if (winFlag)
+                    DrawEndLevelInfo(true);
+
+            }
+            else if (countDownStarted)
+            {
+                hudBatch.Begin();
+               // Math.Abs(WinningBody.Position.X - WinningBodyPos.X) > 0.15f || Math.Abs(WinningBody.Position.Y - WinningBodyPos.Y) > 0.15f
+                //hudBatch.DrawString(hudFont, "zmienne" + WinningBody.Position.ToString(), new Vector2(150, 100), Color.Black);
+                //hudBatch.DrawString(hudFont, "stale" + WinningBodyPos.ToString(), new Vector2(150, 100), Color.Black);
+                hudBatch.DrawString(hudFont, "Wysokosc osiagnieta\n Obliczanie Stabilnosci...\n" + CountDownTimer.ToString(), new Vector2(150, 180), Color.Green);
+                hudBatch.End();
+                
+            }
+            if (lineReached)
+            {
+                hudBatch.Begin();
+                hudBatch.DrawString(hudFont, "LineReached:" + lineReached.ToString(), new Vector2(150, 180), Color.Green);
+                hudBatch.End();
+            }
+
         }
 
         /// <summary>
@@ -377,97 +538,140 @@ namespace gttwin.MainC
             base.Update(gameTime);
 
             // Jeżeli wątek do sprawdzania inputa jest nullem, stwórz go i każ sprawdzić inputa
-            if (InputThread == null)
-                InputThread = new Thread(UpdateInput);
+            //if (InputThread == null)
+                //InputThread = new Thread(UpdateInput);
 
-            // Jeżeli poprzedni blok został usytuowany
-            if (!blockOnHisWay)
+            // Klocek nie spadl na ziemie, gra się toczy
+            if (!failFlag && !winFlag && !countDownStarted)
             {
-                // Losowanie randomowego typu bloku
-                var random = new Random();
-
-                int type = 0;
-
-                if (nextShape == 0)
+                // Jeżeli poprzedni blok został usytuowany
+                if (!blockOnHisWay)
                 {
-                    var firstType = random.Next(1, 7);
-                    var next = random.Next(1, 7);
+                    // Losowanie randomowego typu bloku
+                    var random = new Random();
 
-                    nextShape = next;
-                    type = firstType;
+                    int type = 0;
+
+                    // Losowanie kształtu teraz i następnego
+                    if (nextShape == 0)
+                    {
+                        var firstType = random.Next(1, 7);
+                        var next = random.Next(1, 7);
+
+                        nextShape = next;
+                        type = firstType;
+                    }
+                    else
+                    {
+                        type = nextShape;
+                        var next = random.Next(1, 7);
+
+                        nextShape = next;
+                    }
+
+
+                    // Losowanie randomowego obrotu klocka, od 0 do 360
+                    float rot = (float)random.Next(0, 360);
+
+                    // Stworzenie bloku = jednoznacze z dodaniem go do świata
+                    CurrentBlock = new Block(GraphicsDevice, ref world, tex, (BLOCKTYPES)type, rot);
+
+                    // Dodanie handlera odpalanego przy kolizji
+                    CurrentBlock.myBody.OnCollision += new OnCollisionEventHandler(myBody_OnCollision);
+
+                    CurrentBlock.myBody.IgnoreGravity = true;
+                    CurrentBlock.myBody.LinearVelocity = new Vector2(0f, GameCC.BlockSpeed);
+                    blocksOnPlatform.Add(CurrentBlock);
+                    blockOnHisWay = true;
+
+
                 }
+
+
+                // Aktualizacja fizyki
+
+                world.Step(Math.Min((float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.001f, (1f / 3f)));
+
+
+
+                // Sprawdzanie kolizji spadającego klocka
+                UpdateLevelData();
+
+                // Zmiana pozycji kamery ze względu na wysokość wieży
+                UpdateHighestBodyPos();
+
+                
+
+            }
+
+            // Jeżeli osiągnięto wysokosc, zacznij odliczanie
+            else if (countDownStarted)
+            {
+                // Update timera
+                CountDownTimer.Update(gameTime);
+
+                // Jeżeli update osiagnal 0, to znacyz ze wygrana
+                if (CountDownTimer.countEnded)
+                {
+                    if(!failFlag)
+                        winFlag = true;
+                    countDownStarted = false;
+                }
+                // Jeżeli nie osiagnal zera, to aktualizuj fizyke, jeżeli klocek jakiś spadnie, to kolizja z podloga wywola flage fail
                 else
                 {
-                    type = nextShape;
-                    var next = random.Next(1, 7);
+                    world.Step(Math.Min((float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.001f, (1f / 3f)));
 
-                    nextShape = next;
+                    // Jeżeli zmienilo cialo swoje polozenie gruboa
+                    if (Math.Abs(WinningBody.Position.X - WinningBodyPos.X) > 0.15f || Math.Abs(WinningBody.Position.Y - WinningBodyPos.Y) > 0.15f)
+                    {
+                        failFlag = true;
+                        notStableFlag = true;
+                        countDownStarted = false;
+                    }
                 }
-                    
 
-                // Losowanie randomowego obrotu klocka, od 0 do 360
-                float rot = (float)random.Next(0, 360);
-                
-                // Stworzenie bloku = jednoznacze z dodaniem go do świata
-                CurrentBlock = new Block(GraphicsDevice, ref world, tex, (BLOCKTYPES)type, rot);
-
-                // Dodanie handlera odpalanego przy kolizji
-                CurrentBlock.myBody.OnCollision += new OnCollisionEventHandler(myBody_OnCollision);
-
-                CurrentBlock.myBody.IgnoreGravity = true;
-                CurrentBlock.myBody.LinearVelocity = new Vector2(0f, 0.6f);
-                blocksOnPlatform.Add(CurrentBlock);
-                blockOnHisWay = true;
             }
 
-            // Aktualizacja fizyki
-            //world.Step((float)gameTime.ElapsedGameTime.TotalMilliseconds*0.001f);
-            world.Step(Math.Min((float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.001f, (1f / 3f)));
+            
 
-
-            // Usunięcie Boxów które wypadły za świat - to nie ebdzie wlasciwie potrzebne bo jezeli
-            // Coś wypadnie za świat to koniec gry
-
-            foreach (var box in from box in world.BodyList
-                                let pos = ConvertUnits.ToDisplayUnits(box.Position)
-                                where pos.Y > GraphicsDevice.Viewport.Height
-                                select box)
-            {
-                world.RemoveBody(box);
-            }
-
-
-            // Thread SprawdzaczKolizji = new Thread(UpdateBlockCollision);
-            // SprawdzaczKolizji.Start();
-
-            // Sprawdzanie kolizji spadającego klocka
-            UpdateLevelData();
-
-            // Zmiana pozycji kamery ze względu na wysokość wieży
-            UpdateHighestBodyPos();
-
-
+            // Update input niezaleznie od tego jaki stan
             UpdateInput();
+          
+        }
+        
+        /// <summary>
+        /// Funkcja wypisujaca informacje o koncu gry
+        /// </summary>
+        /// <param name="ifWin">bool czy gra zakonczona poprzez wygrana, czy przegrana
+        /// true - wygrana
+        /// false - przegrana</param>
+        private void DrawEndLevelInfo(bool ifWin)
+        {
+            endingBatch.Begin();
 
-            //Pętla odczytujaca gesty z ekranu
-           /* while (TouchPanel.IsGestureAvailable)
+            switch (ifWin)
             {
-                //odczyt gestu z ekranu
-                GestureSample gesture = TouchPanel.ReadGesture();
+                case true:
+                    endingBatch.DrawString(hudFont, "Gratulacje! Osiagnales wysokosc!", new Vector2(150,150), Color.Green);
+                    endingBatch.DrawString(hudFont, "Przeszedles poziom " + levelImPlayingNumber.ToString(), new Vector2(150, 180), Color.White);
+                    endingBatch.DrawString(hudFont, "Przejdz do ekranu wyboru poziomu - Enter\nPowrot do menu - ESC", new Vector2(150, 200), Color.White);
+                    break;
 
-                //switch sprawdzający który z gestów z Initialize jest wykonywany
-                switch (gesture.GestureType)
-                {
-                    case GestureType.VerticalDrag:
-                        if (CurrentBlock != null) CurrentBlock.myBody.Rotation += 0.01f * gesture.Delta.Y;
-                        break;
-                    case GestureType.HorizontalDrag:
-                        if (CurrentBlock != null) CurrentBlock.myBody.Position += 0.01f * gesture.Delta;
-                        break;
-                }
 
-            }*/
-            float frameTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                case false:
+                    if (notStableFlag)
+                    {
+                        endingBatch.DrawString(hudFont, "Przegrana! Wieza niestabilna", new Vector2(150, 150), Color.Red);
+                    }
+                    else
+                    {
+                        endingBatch.DrawString(hudFont, "Przegrana! Klocek na ziemi", new Vector2(150, 150), Color.Red);
+                    }
+                    endingBatch.DrawString(hudFont, "Gra ponowna - Enter\nPowrot do menu - ESC", new Vector2(150, 180), Color.White);
+                    break;
+            }
+            endingBatch.End();
 
         }
 
@@ -482,8 +686,24 @@ namespace gttwin.MainC
         {
             // Blok doleciał do jakiegos innego - oznacz flagę że doleciał, oraz usuń ten event handler, aby nie
             // Powtarzało się w nieskonczoność.
+            for (float x = -_platform.Position.X; x <= _platform.Position.X * 2; x = x + 0.05f)
+            {
+                List<Fixture> a = world.TestPointAll(new Vector2(x, 4.5f));
+                if (a.Count != 0)
+                {
+                    if (a[0].Body.Equals(fixtureA.Body))
+                    {
+                        //lineReached = true;
+                        countDownStarted = true;
+                        WinningBody = a[0].Body;
+                        WinningBodyPos = new Vector2(WinningBody.Position.X, WinningBody.Position.Y);
+                    }
+                }
+            }
 
             blockOnHisWay = false;
+            fixtureA.Body.IgnoreGravity = false;
+            fixtureA.Body.LinearVelocity = Vector2.Zero;
             fixtureA.Body.OnCollision -= myBody_OnCollision;
             return true;
         }
@@ -494,45 +714,134 @@ namespace gttwin.MainC
         private void UpdateInput()
         {
             GameInputManager.Update();
+
             var przes = new Vector2(1,0);
 
-            if (GameInputManager["BackToMenu"].IsTapped)
+            if (!failFlag && !winFlag)
             {
-                Game.Components.Add(new MainMenuComponent(Game));
 
-                Game.Components.Remove((IGameComponent)this);
+
+                if (GameInputManager["Pause"].IsTapped)
+                {
+
+
+                }
+
+                if (GameInputManager["CCW"].IsDown)
+                {
+                    CurrentBlock.myBody.Rotation -= 0.04f;
+
+                }
+
+                if (GameInputManager["CW"].IsDown)
+                {
+                    CurrentBlock.myBody.Rotation += 0.04f;
+
+                }
+
+                if (GameInputManager["Left"].IsDown)
+                {
+
+                    CurrentBlock.myBody.Position -= 0.01f * przes;
+                }
+
+                if (GameInputManager["Right"].IsDown)
+                {
+                    CurrentBlock.myBody.Position += 0.01f * przes;
+                }
+            }
+            else if(failFlag)
+            {
+                if (GameInputManager["RepeatLevel"].IsTapped)
+                {
+                    ResetLevelProcedure();
+                }
+
+                if (GameInputManager["BackToMenu"].IsTapped)
+                {
+                    Game.Components.Add(new MainMenuComponent(Game));
+
+                    Game.Components.Remove((IGameComponent)this);
+
+                }
 
             }
-
-            if (GameInputManager["Pause"].IsTapped)
+            else if (winFlag)
             {
-                
-                
+                if (GameInputManager["RepeatLevel"].IsTapped)
+                {
+                    Game.Components.Add(new LevelChooserComponent(Game));
+
+                    Game.Components.Remove((IGameComponent)this);
+                }
+
+                if (GameInputManager["BackToMenu"].IsTapped)
+                {
+                    Game.Components.Add(new MainMenuComponent(Game));
+
+                    Game.Components.Remove((IGameComponent)this);
+
+                }
+
             }
+            //Tu dodać elsa
 
-            if (GameInputManager["CCW"].IsDown)
-            {
-                CurrentBlock.myBody.Rotation -= 0.01f;
+        }
 
-            }
 
-            if (GameInputManager["CW"].IsDown)
-            {
-                CurrentBlock.myBody.Rotation += 0.01f;
+        /// <summary>
+        /// Procedura resetujaca swiat fizyczny i wszystkie danye, oraz zaczynajaca gre od nowa
+        /// </summary>
+        private void ResetLevelProcedure()
+        {
+            // reset flag zwyciestwa
+            failFlag = false;
+            winFlag = false;
 
-            }
+            // wyzerowanie obecnie spadajacego bloku - referencji, ona i tak bedzie null, po ponizszej isntrukcji
+            // ale dla pewnosci
+            CurrentBlock = null;
 
-            if (GameInputManager["Left"].IsDown)
-            {
-                
-                CurrentBlock.myBody.Position -= 0.01f * przes;
-            }
+            // zresetuj czas zeby nie bylo zadnych bugow silnika fizycznego
+            this.Game.ResetElapsedTime();
+            
+            world.Clear();
 
-            if (GameInputManager["Right"].IsDown)
-            {
-                CurrentBlock.myBody.Position += 0.01f * przes;
-            }
+            // Tworzenie podlogi od nowa bo cos sie chrzanilo
+            _floor = BodyFactory.CreateRectangle(world,
+                                                ConvertUnits.ToSimUnits(GraphicsDevice.Viewport.Width),
+                                                ConvertUnits.ToSimUnits(floorHeight),
+                                                10f);
+            //_floor.Position = ConvertUnits.ToSimUnits(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 50);
+            Vector2 posi = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - floorHeight / 2);
+            _floor.Position = ConvertUnits.ToSimUnits(posi);
+            _floor.BodyType = BodyType.Static;
+            _floor.IsStatic = true;
+            _floor.Restitution = 0.1f;
+            _floor.Friction = 2.5f;
+            _floor.OnCollision += new OnCollisionEventHandler(CheckFloorCollision);
+            // Tworzenie platformy
+            _platform = BodyFactory.CreateRectangle(world,
+                                                ConvertUnits.ToSimUnits(platformWidth),
+                                                ConvertUnits.ToSimUnits(platformHeight),
+                                                10f);
+            //_platform.Position = ConvertUnits.ToSimUnits(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - 100);
+            Vector2 posi2 = new Vector2(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height - platformHeight / 2 - floorHeight);
+            _platform.Position = ConvertUnits.ToSimUnits(posi2);
+            _platform.BodyType = BodyType.Static;
+            _platform.IsStatic = true;
+            _platform.Restitution = 0.1f;
+            _platform.Friction = 5.0f;
 
+
+            // usuniecie z listy
+            blocksOnPlatform.RemoveRange(0, blocksOnPlatform.Count);
+
+            // Zmienna umozliwiajaca pszczenie nastepnego bloku
+            blockOnHisWay = false;
+
+            
+            timer.Start();
         }
 
         /// <summary>
@@ -546,17 +855,14 @@ namespace gttwin.MainC
              *  Ogarnąć sposób obliczania przesunięcia kamery i przesunięcia punktu respawnu klocków
              *  
              * **/
-
-            /*foreach (Block b in blocksOnPlatform)
+            /*for (float x = -_platform.Position.X; x <= _platform.Position.X*2; x=x+0.1f)
             {
-
-                if (b.myBody.LinearVelocity == Vector2.Zero)
+                List <Fixture> a = world.TestPointAll(new Vector2(x,4.5f));
+                if (a.Count != 0)
                 {
-                    if (b.heightChecked == false)
+                    if (a[0].Body.LinearVelocity == Vector2.Zero)
                     {
-                        highestBodyPosition += b.myBody.Position.Y;
-                        Settings.spawnPoint.Y -= highestBodyPosition * 2;
-                        b.heightChecked = true;
+                        lineReached = true;
                     }
                 }
             }*/
@@ -565,10 +871,16 @@ namespace gttwin.MainC
         }
 
         /// <summary>
-        /// Sprawdzanie wieży - czy osiągneła linię levelu, itd
+        /// Sprawdzanie wieży - czy osiągneła linię levelu, czy sie przewrocila
         /// </summary>
         private void UpdateLevelData()
         {
+            // Pozycja srodka ciala
+            Vector2 blockPositionInDisplay = new Vector2();
+
+            if (CurrentBlock != null)
+                blockPositionInDisplay = ConvertUnits.ToDisplayUnits(CurrentBlock.myBody.Position);
+
 
 
         }
@@ -628,6 +940,9 @@ namespace gttwin.MainC
 
         #region pola Hudu
         private SpriteFont hudFont;
+        private int TargetHeight;
+
+
 
 
         #endregion

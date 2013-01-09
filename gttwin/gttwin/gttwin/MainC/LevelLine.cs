@@ -22,6 +22,12 @@ namespace gtt.MainC
         /// </summary>
         public int height;
 
+
+        /// <summary>
+        /// Wysokosc skonwertowana na jednostki symulacji i zmniejszona tak aby pasowała do symulacji, nie ma wpływu na rysowanie
+        /// </summary>
+        public double heightForSimulation;
+
         /// <summary>
         /// Wierzchołki
         /// </summary>
@@ -33,15 +39,24 @@ namespace gtt.MainC
         //private TextBlock heightText;
 
         /// <summary>
+        /// Czynnik zmniejszający dopasowujący wysokosc linii do symuklacji
+        /// </summary>
+        private double decreasingFactor;
+
+        /// <summary>
         /// Konstruktor
         /// </summary>
         public LevelLine(int _height, GraphicsDevice graphic)
         {
+            decreasingFactor = 0.5;
+
             if (_height <= 100)
                 throw new Exception("Ustawianie wysokosci ponizej 100 jest bez sensu, ");
 
             // Przypisania, tworzenie obiektow
             height = _height;
+
+            heightForSimulation = ConvertUnits.ToSimUnits(_height)*10;
            // heightText = new TextBlock();
             // Wypelnienie linii textem
            // heightText.Text = height.ToString() + "m";

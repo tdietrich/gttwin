@@ -29,11 +29,14 @@ namespace gttwin.MainC
 
         public void Update()
         {
+            
             KeyboardState kbState = Keyboard.GetState(Microsoft.Xna.Framework.PlayerIndex.One);
             GamePadState gpState = GamePad.GetState(Microsoft.Xna.Framework.PlayerIndex.One);
 
             foreach (InputAction a in actions)
                 a.Update(kbState, gpState);
+
+            
         }
 
     }
