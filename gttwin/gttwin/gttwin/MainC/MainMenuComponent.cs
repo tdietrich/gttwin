@@ -33,6 +33,7 @@ namespace gttwin.MainC
         {
             /*
              * Dodawanie informacji o inpucie do managera
+             * 
              * */
             MenuInputManager = new InputManager();
             MenuInputManager.AddAction("Play");

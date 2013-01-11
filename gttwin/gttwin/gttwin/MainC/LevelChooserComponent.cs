@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace gttwin.MainC
 {
+
     class LevelChooserComponent : DrawableGameComponent
     {
 
@@ -44,7 +45,10 @@ namespace gttwin.MainC
 
             for (float x = 0; x < 10; x++)
             {
+                // Wysoksc linii do osiagniecia w danym levelu
                 float a = (float)Math.Round((5 - (x*0.1f)),2);
+
+                // Szer platformy
                 float b = (float)Math.Round((200 - 5 * x),2);
 
                 

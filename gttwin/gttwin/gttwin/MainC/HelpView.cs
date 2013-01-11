@@ -39,7 +39,7 @@ namespace gttwin.MainC
         protected override void LoadContent()
         {
             HeaderFont = Game.Content.Load<SpriteFont>("font");
-
+            
 
             base.LoadContent();
         }
@@ -64,6 +64,7 @@ namespace gttwin.MainC
             GraphicsDevice.Clear(Color.CadetBlue);
 
             spriteBatch.Begin();
+            
             spriteBatch.DrawString(HeaderFont, "Help", new Vector2(GraphicsDevice.Viewport.Width/2, 150), Color.Black);
             spriteBatch.End();
 
@@ -77,7 +78,7 @@ namespace gttwin.MainC
         private InputManager MyInputManager;
         private SpriteFont HeaderFont;
         private SpriteBatch spriteBatch;
-
+        private Texture2D sratatat;
         #endregion
 
 
