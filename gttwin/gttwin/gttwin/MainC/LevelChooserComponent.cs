@@ -40,20 +40,21 @@ namespace gttwin.MainC
              * Tutaj odbywa się dodanie poziomów do gry
              * */
             LevelsList = new LinkedList<Level>();
-            LevelsList.AddLast(new Level(4, 200));
+            //LevelsList.AddLast(new Level(3, 200));
 
-            /*for (uint x = 0; x < 10; x++)
+            for (float x = 0; x < 10; x++)
             {
-                uint a = 110 + 15 * x;
-                uint b = 200 - 5 * x;
+                float a = (float)Math.Round((5 - (x*0.1f)),2);
+                float b = (float)Math.Round((200 - 5 * x),2);
 
+                
                 if (Game1.player.IsLevelUnlocked((int)(x + 1)))
                     LevelsList.AddLast(new Level(a,b,false));
                 else
                     LevelsList.AddLast(new Level(a, b));
 
             }
-            */
+            
 
             // Ustawienie currenta na pierwszy lewel
             currentChosenLevel = LevelsList.First;
@@ -78,6 +79,8 @@ namespace gttwin.MainC
             MyInputManager["Left"].Add(Keys.Left);
             MyInputManager["Right"].Add(Keys.Right);
 
+            // Ohydny sposób na BUG, który łapie entera z poprzedniego komponentu
+            System.Threading.Thread.Sleep(500);
 
             base.Initialize();
         }
@@ -142,9 +145,11 @@ namespace gttwin.MainC
 
             if (MyInputManager["EnterLevel"].IsTapped)
             {
+                
                 // Dodanie komponentu gry z info o wybranym levelu
                 this.Game.Components.Add(new GameCC(this.Game,currentChosenLevel.Value,activePositionNumber));
 
+                
                 // Usunięcie tego komponentu
                 this.Game.Components.Remove((IGameComponent)this);
 

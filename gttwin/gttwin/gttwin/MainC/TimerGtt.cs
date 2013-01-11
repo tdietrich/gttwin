@@ -16,7 +16,7 @@ namespace gttwin.MainC
     class TimerGtt
     {
         /// <summary>
-        /// Konstruktor
+        /// Konstruktor Timera. Korzysta z elemetnów TimeSpan. Działa w 2ch opcjach patrz - <see cref="TimerGttModes"/>
         /// </summary>
         /// <param name="mode"> Tryb pracy timera</param>
         /// <param name="time"> Czas, w zaleznosci od trybu oznacza czas początkowy odliczania w dół, lub czas do którego należy doliczać, jeżeli = -1, timer liczy w nieskonczonosc</param>
@@ -35,7 +35,7 @@ namespace gttwin.MainC
             
         }
 
-        
+        # region Methods
 
         public void Update(GameTime gameTime)
         {
@@ -95,14 +95,21 @@ namespace gttwin.MainC
             return currentTime.ToString();
         }
 
+        #endregion
+
+        # region Fields
         private bool infinityMode;
         public bool countEnded;
         private TimeSpan Zero = new TimeSpan(0,0,0,0);
         private TimeSpan currentTime;
         private TimeSpan time;
         private TimerGttModes mode;
+        # endregion Fields
     }
 
+    /// <summary>
+    /// Opcje działania Timera
+    /// </summary>
     enum TimerGttModes
     {
         COUNTDOWN = 1,

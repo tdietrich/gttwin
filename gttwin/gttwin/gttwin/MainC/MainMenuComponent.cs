@@ -24,7 +24,7 @@ namespace gttwin.MainC
         }
 
 
-        # region methods
+        # region Methods
 
         /// <summary>
         /// Odpalane przed wyrysowaniem czegokolwiek
@@ -36,9 +36,14 @@ namespace gttwin.MainC
              * */
             MenuInputManager = new InputManager();
             MenuInputManager.AddAction("Play");
+            MenuInputManager.AddAction("Help");
+            MenuInputManager.AddAction("Highscores");
+
             MenuInputManager.AddAction("Close");
             MenuInputManager["Play"].Add(Keys.Enter);
-            MenuInputManager["Close"].Add(Keys.E);
+            MenuInputManager["Close"].Add(Keys.Q);
+            MenuInputManager["Help"].Add(Keys.W);
+            MenuInputManager["Highscores"].Add(Keys.E);
 
             base.Initialize();
         }
@@ -75,9 +80,11 @@ namespace gttwin.MainC
             spriteBatch.Begin();
             // Rysowanie tekstu
             spriteBatch.DrawString(contentFont, komunikat, new Vector2(120,150), Color.Black);
-            spriteBatch.DrawString(contentFont, "[e] - Wyjdz z gry", new Vector2(120, 170), Color.Black);
+            spriteBatch.DrawString(contentFont, "[w] - Help", new Vector2(120, 170), Color.Black); 
+            spriteBatch.DrawString(contentFont, "[e] - Highscores", new Vector2(120, 190), Color.Black);
+            spriteBatch.DrawString(contentFont, "[q] - Wyjdz z gry", new Vector2(120, 210), Color.Black);
             spriteBatch.DrawString(contentFont, "Gracz: " + Game1.player.login, new Vector2(10, 50), Color.Yellow);
-            spriteBatch.DrawString(contentFont, "Leveli odblokowanych: " + Game1.player.UnlockedLevels.Length.ToString(), new Vector2(30, 80), Color.Yellow);
+            spriteBatch.DrawString(contentFont, "Leveli odblokowanych: " + Game1.player.UnlockedLevels.Count.ToString(), new Vector2(30, 80), Color.Yellow);
             // Zamykanie rysowania duszków w danej klatce
             spriteBatch.End();
 
@@ -103,13 +110,15 @@ namespace gttwin.MainC
                 // Dodanie komponentu wyboru ekranu
                 //Game.Components.Add(new GameCC(Game));
 
+
                 // Dodanie komponentu wyboru leveli
                 Game.Components.Add(new LevelChooserComponent(Game));
+                // Usuniecie komponentu MainMenu
+                Game.Components.Remove((IGameComponent)this);
 
                 //Game.Components.Add(new RegisterComponent(Game));
 
-                // Usuniecie komponentu MainMenu
-                Game.Components.Remove((IGameComponent)this);
+                
             }
             if (MenuInputManager["Close"].IsTapped)
             {
@@ -117,10 +126,24 @@ namespace gttwin.MainC
                 this.Game.Exit();
             }
 
+            if (MenuInputManager["Help"].IsTapped)
+            {
+                Game.Components.Add(new HelpView(Game));
+                Game.Components.Remove((IGameComponent)this);
+            }
+
+            if (MenuInputManager["Highscores"].IsTapped)
+            {
+                Game.Components.Add(new HighscoreView(Game));
+                Game.Components.Remove((IGameComponent)this);
+            }
+
             
         }
 
         #endregion
+
+        # region Fields
         private InputManager MenuInputManager;
         private Vector2 wspNaSrodek;
         private string komunikat;
@@ -128,7 +151,7 @@ namespace gttwin.MainC
         protected SpriteFont headerFont;
         protected SpriteFont contentFont;
         protected ContentManager contentManagerRef;
-
+        # endregion
 
     }
 }

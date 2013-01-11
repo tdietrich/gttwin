@@ -14,6 +14,24 @@ namespace gttwin.MainC
     {
 
 
+        # region PerGameVars
+
+
+        #endregion
+
+
+        #region PerLevelVars
+
+
+        #endregion
+
+
+
+        #region PerGameTimeUpdateVars
+
+
+        #endregion
+
 
 
         /// <summary>

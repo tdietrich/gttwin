@@ -10,6 +10,9 @@ namespace gttwin.MainC
     /// </summary>
     class Level
     {
+        /// <summary>
+        /// Standardowy konstruktor, nie ustawia nic. Zalecane używanie Konstruktora przeładowanego, z danymi.
+        /// </summary>
         public Level()
         {
 
@@ -21,7 +24,7 @@ namespace gttwin.MainC
         /// <param name="targetHeight">Wysokosc platformy - wysokosc > 80 powinna byc raczej</param>
         /// <param name="platformWidth">szerokosc platformy</param>
         /// <param name="locked">Zablokowany czy odblokowany dla usera</param>
-        public Level(uint targetHeight, uint platformWidth, bool locked = true)
+        public Level(float targetHeight, float platformWidth, bool locked = true)
         {
             this.TargetHeight = targetHeight;
             this.PlatformWidth = platformWidth;
@@ -42,13 +45,13 @@ namespace gttwin.MainC
         /// <summary>
         /// Wysokosc w jednostkach symulacji(?) po których wygrywa się grę.
         /// </summary>
-        public uint TargetHeight;
+        public float TargetHeight;
 
 
         /// <summary>
         /// Szerokosc platformy
         /// </summary>
-        public uint PlatformWidth;
+        public float PlatformWidth;
 
         /// <summary>
         /// Zmienna mowiaca o tym czy level jest zablokowany dla playera

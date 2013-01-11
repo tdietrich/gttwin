@@ -5,6 +5,7 @@ using gttwin.MainC;
 using System.Runtime.Serialization;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
 
 namespace gttwin
 {
@@ -69,8 +70,16 @@ namespace gttwin
 
                 }
 
+                //Lista
+                List<int> lista = new List<int>();
+                
+                // Kopia tablicy do listy
+                foreach (int a in unlocked)
+                {
+                    lista.Add(a);
+                }
 
-                player = new Player(login, haslo,unlocked);
+                player = new Player(login, haslo, lista);
 
                 // Dodanie komponentu g³ownego menu jako pierszego ktory widzi player
                 // Dodanei go PO initialize wywala buga, nie jest inicjalizowany komponent wtedy!!!

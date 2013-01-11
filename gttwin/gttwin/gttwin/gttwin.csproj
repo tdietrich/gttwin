@@ -46,6 +46,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <PlatformTarget>x86</PlatformTarget>
     <XnaCompressContent>false</XnaCompressContent>
+    <DocumentationFile>bin\x86\Debug\Gravity Tetris Tower Documentation.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>pdbonly</DebugType>
@@ -85,6 +86,8 @@
     <Compile Include="MainC\BlockTypesEnum.cs" />
     <Compile Include="DebugViewXNA.cs" />
     <Compile Include="MainC\GameCC.cs" />
+    <Compile Include="MainC\HelpView.cs" />
+    <Compile Include="MainC\HighscoreView.cs" />
     <Compile Include="MainC\InputAction.cs" />
     <Compile Include="MainC\InputManager.cs" />
     <Compile Include="MainC\IPlayer.cs" />
@@ -98,7 +101,7 @@
     <Compile Include="MainC\RegisterComponent.cs" />
     <Compile Include="MainC\Sprite.cs" />
     <Compile Include="MainC\StatsModule.cs" />
-    <Compile Include="MainC\TextRenderer.cs" />
+    <Compile Include="MainC\Text.cs" />
     <Compile Include="MainC\TimerGtt.cs" />
     <Compile Include="PrimitiveBatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

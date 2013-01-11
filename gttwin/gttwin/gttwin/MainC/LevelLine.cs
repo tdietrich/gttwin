@@ -23,7 +23,7 @@ namespace gtt.MainC
         /// 
         /// Wysokosc do rysowania znajduje sie w zmiennej <see cref="heightForDisplay"/>
         /// </summary>
-        public int height;
+        public float height;
 
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace gtt.MainC
         /// <summary>
         /// Konstruktor
         /// </summary>
-        public LevelLine(int _height, GraphicsDevice graphic)
+        public LevelLine(float _height, GraphicsDevice graphic)
         {
             //decreasingFactor = 0.5;
 

@@ -14,9 +14,9 @@ namespace gttwin.MainC
 
         void AddPoints(int numof);
 
-        void AddTimePlayed(int numof);
-
         void AddWin();
+
+        void UnlockNextLevel(int currentLevelNum);
 
         
     }

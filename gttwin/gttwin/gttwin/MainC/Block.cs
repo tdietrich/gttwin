@@ -17,7 +17,7 @@ namespace gtt.MainC
     /// autor: Tomasz Dietrich
     /// 
     /// TODO:
-    ///     - Jeżeli klocek się obraca to nie obraca się względem środka swojego, trzeba dostosować pozycje
+    ///     - [DONE] Jeżeli klocek się obraca to nie obraca się względem środka swojego, trzeba dostosować pozycje
     ///       Respawna w takim razie.
     /// </summary>
     /// 
@@ -65,6 +65,7 @@ namespace gtt.MainC
         /// </summary>
         private BLOCKTYPES type;
 
+  
         #endregion Fields
         
 
@@ -80,7 +81,7 @@ namespace gtt.MainC
             type = _type;
             worldRef = _worldRef;
             tex = texture;
-
+            
             // Stworzenie zmiennej do rysowania
             spriteBatch = new SpriteBatch(graphic);
 
@@ -120,23 +121,6 @@ namespace gtt.MainC
             //myBody.OnCollision += new OnCollisionEventHandler(myBody_OnCollision);
 
         }
-
-        /// <summary>
-        /// W momencie gdy ciało skoliduje z jakims innym, ma prędkość ustawiona na 0, i zaczyna na niego wplywac grawitacja
-        /// Takie rozwiązanie umożliwia ukladanie klocków jakies sensowne
-        /// </summary>
-        /// <param name="fixtureA"></param>
-        /// <param name="fixtureB"></param>
-        /// <param name="contact"></param>
-        /// <returns></returns>
-        bool myBody_OnCollision(Fixture fixtureA, Fixture fixtureB, FarseerPhysics.Dynamics.Contacts.Contact contact)
-        {
-            //myBody.IgnoreGravity = false;
-            //myBody.LinearVelocity = Vector2.Zero;
-            return true;
-        }
-
-
 
         /// <summary>
         /// Funkcja w zaleznosci od typu klocka tetrisowego, tworzy ciało skłądające się z kwadratów
@@ -248,6 +232,7 @@ namespace gtt.MainC
              }
             myBody = BodyFactory.CreateCompoundPolygon(worldRef, rects, 1.0f);
             
+            
         }
 
 
@@ -267,7 +252,6 @@ namespace gtt.MainC
             spriteBatch.End();
         }
 
-
-        #endregion Methods
+        #endregion
     }
 }
