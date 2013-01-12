@@ -84,7 +84,7 @@ namespace gttwin.MainC
             MyInputManager["Right"].Add(Keys.Right);
 
             // Ohydny sposób na BUG, który łapie entera z poprzedniego komponentu
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(700);
 
             base.Initialize();
         }
@@ -95,8 +95,12 @@ namespace gttwin.MainC
         protected override void LoadContent()
         {
             // załadowanie czcionki
-            font = this.Game.Content.Load<SpriteFont>("levelSpriteFont");
+            font = this.Game.Content.Load<SpriteFont>("levelFont");
             firstSpritePosition = new Vector2(50, 80);
+
+            level_header = this.Game.Content.Load<Texture2D>("levels/level_header");
+            level_lock = this.Game.Content.Load<Texture2D>("levels/lock");
+            background = this.Game.Content.Load<Texture2D>("levels/background");
 
             base.LoadContent();
         }
@@ -176,7 +180,6 @@ namespace gttwin.MainC
             base.Update(gameTime);
         }
 
-
         /// <summary>
         /// Rysuj
         /// </summary>
@@ -184,18 +187,29 @@ namespace gttwin.MainC
         public override void Draw(GameTime gameTime)
         {
             uint x = 0;
+            int backToLeft = 0;
 
             Vector2 pos = new Vector2(50, 80);
-
+            spriteBatch.Begin();
+            spriteBatch.Draw(level_header, new Rectangle(100, 20, level_header.Width, level_header.Height), Color.White);
+            spriteBatch.End();
             foreach (Level l in LevelsList)
             {
                 spriteBatch.Begin();
+                backToLeft = (int)x % 7;
+                if(x<9)
+                    pos = new Vector2(48 + backToLeft * 20 + (int)(background.Width * 0.3 * backToLeft), 170 + (int)(x / 7) * 20 + (int)(background.Width * 0.3 * (int)(x / 7)));
+                else
+                    pos = new Vector2(35 + backToLeft * 20 + (int)(background.Width * 0.3 * backToLeft), 170 + (int)(x / 7) * 20 + (int)(background.Width * 0.3 * (int)(x / 7)));
+                
+                
 
                 string num = (x + 1).ToString();
 
                 // Jeżeli ta pozycja ma byc podswietlana
                 if ((x + 1) == activePositionNumber)
                 {
+                    spriteBatch.Draw(background, new Rectangle(20 + backToLeft * 20 + (int)(background.Width * 0.3 * backToLeft), 160 + (int)(x / 7) * 20 + (int)(background.Width * 0.3 * (int)(x / 7)), (int)(background.Width * 0.3), (int)(background.Height * 0.3)), Color.White);
                     spriteBatch.DrawString(font, num, pos, Color.White);
                 }
 
@@ -204,10 +218,16 @@ namespace gttwin.MainC
                 {
                     if (LevelsList.ElementAt<Level>((int)x).IsLocked())
                     {
+                        spriteBatch.Draw(background, new Rectangle(20 + backToLeft * 20 + (int)(background.Width * 0.3 * backToLeft), 160 + (int)(x / 7) * 20 + (int)(background.Width * 0.3 * (int)(x / 7)), (int)(background.Width * 0.3), (int)(background.Height * 0.3)), Color.White);
                         spriteBatch.DrawString(font, num, pos, Color.Gray);
+                        spriteBatch.Draw(level_lock, new Rectangle(20 + backToLeft * 20 + (int)(background.Width * 0.3 * backToLeft), 160 + (int)(x / 7) * 20 + (int)(background.Width * 0.3 * (int)(x / 7)), (int)(background.Width * 0.3), (int)(background.Height * 0.3)), Color.White);
+
                     }
                     else
+                    {
+                        spriteBatch.Draw(background, new Rectangle(20 + backToLeft * 20 + (int)(background.Width * 0.3 * backToLeft), 160 + (int)(x / 7) * 20 + (int)(background.Width * 0.3 * (int)(x / 7)), (int)(background.Width * 0.3), (int)(background.Height * 0.3)), Color.White);
                         spriteBatch.DrawString(font, num, pos, Color.Black);
+                    }
                 }
 
                 spriteBatch.End();
@@ -226,6 +246,9 @@ namespace gttwin.MainC
         private LinkedList<Level> LevelsList;
         private SpriteBatch spriteBatch;
         private SpriteFont font;
+        private Texture2D background;
+        private Texture2D level_lock;
+        private Texture2D level_header;
         private Vector2 firstSpritePosition;
         private uint activePositionNumber;
         private LinkedListNode<Level> currentChosenLevel;

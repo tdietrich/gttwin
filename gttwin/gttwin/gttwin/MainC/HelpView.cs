@@ -10,7 +10,7 @@ namespace gttwin.MainC
 {
     /// <summary>
     /// 
-    /// Autor: Tomasz Dietrich
+    /// Autor: Tomasz Dietrich i Michał Czwarnowski
     /// </summary>
     class HelpView : DrawableGameComponent
     {
@@ -39,7 +39,7 @@ namespace gttwin.MainC
         protected override void LoadContent()
         {
             HeaderFont = Game.Content.Load<SpriteFont>("font");
-            
+            titleFont = this.Game.Content.Load<SpriteFont>("titleFont");
 
             base.LoadContent();
         }
@@ -64,8 +64,9 @@ namespace gttwin.MainC
             GraphicsDevice.Clear(Color.CadetBlue);
 
             spriteBatch.Begin();
-            
-            spriteBatch.DrawString(HeaderFont, "Help", new Vector2(GraphicsDevice.Viewport.Width/2, 150), Color.Black);
+                spriteBatch.DrawString(titleFont, "Pomoc", new Vector2(280, 10), Color.White);
+                spriteBatch.DrawString(HeaderFont, "Pomoc ma na celu wprowadzic gracza w zasady i sposob", new Vector2(10, 150), Color.Black);
+                spriteBatch.DrawString(HeaderFont, "dzialania gry. Ale nie tutaj. Tu trzeba sobie radzic!", new Vector2(10, 180), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -79,6 +80,7 @@ namespace gttwin.MainC
         private SpriteFont HeaderFont;
         private SpriteBatch spriteBatch;
         private Texture2D sratatat;
+        private SpriteFont titleFont;
         #endregion
 
 
