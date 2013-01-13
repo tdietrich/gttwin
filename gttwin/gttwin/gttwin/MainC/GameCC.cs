@@ -81,6 +81,13 @@ namespace gttwin.MainC
         protected Texture2D tex3;
 
         /// <summary>
+        /// Tekstury wykorzystywane w LevelChooserComponent
+        /// </summary>
+        protected Texture2D background;
+        protected Texture2D level_header;
+        protected Texture2D level_lock;
+
+        /// <summary>
         /// Widok
         /// </summary>
         public DebugViewXNA debugView;
@@ -413,6 +420,11 @@ namespace gttwin.MainC
             tex2 = Game.Content.Load<Texture2D>("asdawdas");
             tex3 = Game.Content.Load<Texture2D>("floor");
 
+            //Tekstury do wybierania levelu
+            background = Game.Content.Load<Texture2D>("levels/background");
+            level_header = Game.Content.Load<Texture2D>("levels/level_header");
+            level_lock = Game.Content.Load<Texture2D>("levels/lock");
+
             // ladowanie fontu z assetow
             hudFont = Game.Content.Load<SpriteFont>("font");
             //OurBlock = new Block(BLOCKTYPES.Z_SHAPE, ref world, tex);
@@ -713,7 +725,7 @@ namespace gttwin.MainC
                 case true:
                     endingBatch.DrawString(hudFont, "Gratulacje! Osiagnales wysokosc!", new Vector2(150,150), Color.Green);
                     endingBatch.DrawString(hudFont, "Przeszedles poziom " + levelImPlayingNumber.ToString(), new Vector2(150, 180), Color.White);
-                    endingBatch.DrawString(hudFont, "Przejdz do ekranu wyboru poziomu - Enter\nPowrot do menu - ESC", new Vector2(150, 200), Color.White);
+                    endingBatch.DrawString(hudFont, "Przejdz do ekranu wyboru poziomu - Enter\nPowrot do menu - ESC", new Vector2(150, 210), Color.White);
                     break;
 
 

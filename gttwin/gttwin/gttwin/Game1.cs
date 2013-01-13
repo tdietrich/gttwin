@@ -89,7 +89,7 @@ namespace gttwin
             // dane nie istniej¹
             else
             {
-                Components.Add(new RegisterComponent(this));
+                //Components.Add(new RegisterComponent(this));
 
             }
 

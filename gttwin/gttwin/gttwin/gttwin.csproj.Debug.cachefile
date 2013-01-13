@@ -11,3 +11,12 @@ Content\shapes\oshape.xnb
 Content\shapes\sshape.xnb
 Content\shapes\tshape.xnb
 Content\shapes\zshape.xnb
+Content\levels\level_header.xnb
+Content\levels\background.xnb
+Content\levels\lock.xnb
+Content\levelFont.xnb
+Content\titleFont.xnb
+Content\help.xnb
+Content\highscores.xnb
+Content\play.xnb
+Content\quit.xnb

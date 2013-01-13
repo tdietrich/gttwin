@@ -10,7 +10,7 @@ namespace gttwin.MainC
 {
     /// <summary>
     /// 
-    /// Autor: Tomasz Dietrich
+    /// Autor: Tomasz Dietrich i Michał Czwarnowski
     /// </summary>
     class HighscoreView : DrawableGameComponent
     {
@@ -44,7 +44,7 @@ namespace gttwin.MainC
         protected override void LoadContent()
         {
             HeaderFont = Game.Content.Load<SpriteFont>("font");
-
+            titleFont = this.Game.Content.Load<SpriteFont>("titleFont");
             base.LoadContent();
         }
 
@@ -76,7 +76,9 @@ namespace gttwin.MainC
             GraphicsDevice.Clear(Color.Chartreuse);
 
             spriteBatch.Begin();
-                spriteBatch.DrawString(HeaderFont, "Highscores", new Vector2(GraphicsDevice.Viewport.Width / 2, 150), Color.Black);
+                spriteBatch.DrawString(titleFont, "Highscores", new Vector2(230, 10), Color.Black);
+                spriteBatch.DrawString(HeaderFont, "Najdluzszy czas gry: 00:30", new Vector2(20, 150), Color.Black);
+                spriteBatch.DrawString(HeaderFont, "Najwyzsza wieza: 69 m", new Vector2(20, 180), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -89,7 +91,7 @@ namespace gttwin.MainC
         private InputManager MyInputManager;
         private SpriteFont HeaderFont;
         private SpriteBatch spriteBatch;
-
+        private SpriteFont titleFont;
 
         #endregion
 

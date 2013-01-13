@@ -55,13 +55,17 @@ namespace gttwin.MainC
         /// </summary>
         protected override void LoadContent()
         {
-            
 
+            play = this.Game.Content.Load<Texture2D>("play");
+            quit = this.Game.Content.Load<Texture2D>("quit");
+            help = this.Game.Content.Load<Texture2D>("help");
+            highscores = this.Game.Content.Load<Texture2D>("highscores");
             spriteBatch = new SpriteBatch(this.GraphicsDevice);
             // ladowanie fontu z assetow
             contentFont = Game.Content.Load<SpriteFont>("font");
-
-            komunikat = "[Enter] - Graj";
+            titleFont = this.Game.Content.Load<SpriteFont>("titleFont");
+            
+            komunikat = "Graj!";
 
            // Vector2 wymiarKom = contentFont.MeasureString(komunikat);
            // wspNaSrodek = new Vector2((GraphicsDevice.Viewport.TitleSafeArea.Width - wymiarKom.X) / 2, (GraphicsDevice.Viewport.TitleSafeArea.Height - wymiarKom.Y) / 2);
@@ -80,12 +84,17 @@ namespace gttwin.MainC
             
             spriteBatch.Begin();
             // Rysowanie tekstu
-            spriteBatch.DrawString(contentFont, komunikat, new Vector2(120,150), Color.Black);
-            spriteBatch.DrawString(contentFont, "[w] - Help", new Vector2(120, 170), Color.Black); 
-            spriteBatch.DrawString(contentFont, "[e] - Highscores", new Vector2(120, 190), Color.Black);
-            spriteBatch.DrawString(contentFont, "[q] - Wyjdz z gry", new Vector2(120, 210), Color.Black);
-            spriteBatch.DrawString(contentFont, "Gracz: " + Game1.player.login, new Vector2(10, 50), Color.Yellow);
-            spriteBatch.DrawString(contentFont, "Leveli odblokowanych: " + Game1.player.UnlockedLevels.Count.ToString(), new Vector2(30, 80), Color.Yellow);
+            spriteBatch.DrawString(contentFont, komunikat, new Vector2(100,270), Color.White);
+            spriteBatch.Draw(play, new Rectangle(20, 250, (int)(play.Width * 0.2), (int)(play.Height * 0.2)), Color.White);
+            spriteBatch.Draw(help, new Rectangle(20, 320, (int)(play.Width * 0.2), (int)(play.Height * 0.2)), Color.White);
+            spriteBatch.Draw(highscores, new Rectangle(20, 390, (int)(play.Width * 0.2), (int)(play.Height * 0.2)), Color.White);
+            spriteBatch.Draw(quit, new Rectangle(20, 460, (int)(play.Width * 0.2), (int)(play.Height * 0.2)), Color.White);
+            spriteBatch.DrawString(contentFont, "Pomoc", new Vector2(100, 340), Color.White); 
+            spriteBatch.DrawString(contentFont, "Najlepsze wyniki", new Vector2(100, 410), Color.White);
+            spriteBatch.DrawString(contentFont, "Wyjdz z gry", new Vector2(100, 480), Color.White);
+            spriteBatch.DrawString(contentFont, "Gracz: " + Game1.player.login, new Vector2(10, 140), Color.Yellow);
+            spriteBatch.DrawString(titleFont, "Gravity Tetris Tower", new Vector2(60, 10), Color.White);
+            spriteBatch.DrawString(contentFont, "Leveli odblokowanych: " + Game1.player.UnlockedLevels.Count.ToString(), new Vector2(10, 170), Color.Yellow);
             // Zamykanie rysowania duszków w danej klatce
             spriteBatch.End();
 
@@ -150,8 +159,13 @@ namespace gttwin.MainC
         private string komunikat;
         protected SpriteBatch spriteBatch;
         protected SpriteFont headerFont;
+        private SpriteFont titleFont;
         protected SpriteFont contentFont;
         protected ContentManager contentManagerRef;
+        private Texture2D play;
+        private Texture2D quit;
+        private Texture2D help;
+        private Texture2D highscores;
         # endregion
 
     }
